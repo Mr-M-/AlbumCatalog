@@ -9,7 +9,7 @@ import java.util.Collections;
 
 public class AlbumCatalog {
 	public static void main(String[] args) {
-		File file = new File("C:\\Users\\matth\\Documents\\AlbumCatalogDoc.txt");
+		File file = new File("C:\\Users\\matth\\Documents\\AlbumCatalogDoc.txt");//Change this to the file location on your computer
 		int numAlbums = 0;
 		//Counts number of lines; now unnecessary:
 //		try {
