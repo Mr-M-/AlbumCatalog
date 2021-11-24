@@ -10,7 +10,6 @@ import java.util.Collections;
 public class AlbumCatalog {
 	public static void main(String[] args) {
 		File file = new File(".\\AlbumCatalogDoc.txt");
-		System.out.println(file.getAbsolutePath());
 		
 		int numAlbums = 0;
 		
