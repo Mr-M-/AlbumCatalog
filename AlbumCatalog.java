@@ -9,53 +9,21 @@ import java.util.Collections;
 
 public class AlbumCatalog {
 	public static void main(String[] args) {
-		File file = new File("C:\\Users\\matth\\Documents\\AlbumCatalogDoc.txt");//Change this to the file location on your computer
+		File file = new File(".\\AlbumCatalogDoc.txt");
+		System.out.println(file.getAbsolutePath());
+		
 		int numAlbums = 0;
-		//Counts number of lines; now unnecessary:
-//		try {
-//		BufferedReader reader = new BufferedReader(new FileReader("C:\\\\Users\\\\matth\\\\Documents\\\\AlbumCatalogDoc.txt"));
-//		while (reader.readLine() != null) numAlbums++;
-//		reader.close();
-//		}
-//		catch(IOException e){
-//			e.printStackTrace();
-//			System.out.println("File not found.");
-//		}
 		
 		ArrayList<Artist> artists = new ArrayList<Artist>();
 		ArrayList<Date> dates = new ArrayList<Date>();
 		ArrayList<String> genres = new ArrayList<String>();
 		ArrayList<Album> viewList = new ArrayList<Album>();//Stores albums for user to interact with
+		ArrayList<Artist> artistViewList = new ArrayList<Artist>();//Stores artists for user to interact with
 		Artist lastViewedArtist = null;
 		Date lastViewedDate = null;
 		String lastViewed = "";//Artist or date
 		ArrayList<Album> tempOTD = new ArrayList<Album>();//Stores albums for latest mmdd date
-		
-		//Generating dates 1900 to 2022 with brute force:
-		for(int m = 1; m < 10; m++) {
-			for(int d = 1; d < 10; d++) {
-				for(int y = 1900; y < 2023; y++) {
-					dates.add(new Date("0"+String.valueOf(m)+"0"+String.valueOf(d)+String.valueOf(y)));
-				}
-			}
-			for(int d = 10; d < 32; d++) {
-				for(int y = 1900; y < 2023; y++) {
-					dates.add(new Date("0"+String.valueOf(m)+String.valueOf(d)+String.valueOf(y)));
-				}
-			}
-		}
-		for(int m = 10; m < 13; m++) {
-			for(int d = 1; d < 10; d++) {
-				for(int y = 1900; y < 2023; y++) {
-					dates.add(new Date(String.valueOf(m)+"0"+String.valueOf(d)+String.valueOf(y)));
-				}
-			}
-			for(int d = 10; d < 32; d++) {
-				for(int y = 1900; y < 2023; y++) {
-					dates.add(new Date(String.valueOf(m)+String.valueOf(d)+String.valueOf(y)));
-				}
-			}
-		}
+		ArrayList<Artist> tempArtists = new ArrayList<Artist>();//Stores artists for other functions
 		
 		//Parsing the text file:
 		numAlbums += AlbumCatalog.parse(file, artists, dates);//<-- VERY IMPORTANT! DON'T DELETE!
@@ -94,6 +62,7 @@ public class AlbumCatalog {
 				for(Artist a : artists) {
 					if(a.getName().equals(artistName)) {
 						artist = a;
+						lastViewedArtist = artist;
 					}
 				}
 				System.out.println(artist.getName());
@@ -133,15 +102,32 @@ public class AlbumCatalog {
 			
 			else if(input.equals("PRINT ARTISTS")) {
 				int num = 1;
+				tempArtists = new ArrayList<Artist>();
 				for(Artist a : artists) {
 					System.out.println("["+num+"] "+a);
+					tempArtists.add(a);
 					num++;
 				}
 				lastViewed = "ARTISTLIST";
 			}
 			
-			else if(input.length() > 5 && input.substring(0,4).equals("ADD ")){
-				int num = Integer.parseInt(input.substring(4,6));
+			else if(input.length() > 14 && input.substring(0,14).equals("PRINT ARTISTS ")) {
+				input = input.toUpperCase();
+				char letter = input.charAt(14);
+				int num = 1;
+				tempArtists = new ArrayList<Artist>();
+				for(Artist a : artists) {
+					if(a.getName().toUpperCase().charAt(0) == letter) {
+						System.out.println("["+num+"] "+a);
+						tempArtists.add(a);
+						num++;
+					}
+				}
+				lastViewed = "ARTISTLIST";
+			}
+			
+			else if(input.length() > 4 && input.substring(0,4).equals("ADD ")){
+				int num = Integer.parseInt(input.substring(4));
 				if(num < 1) {
 					System.out.println("Operation not possible.");
 				}
@@ -151,12 +137,17 @@ public class AlbumCatalog {
 				else if(lastViewed.equals("ARTIST") && num - 1 < lastViewedArtist.getDiscography().size()) {
 					viewList.add(lastViewedArtist.getDiscography().get(num-1));
 				}
-				else if(lastViewed.equals("ARTISTLIST") && num - 1 < artists.size()) {
-					lastViewedArtist = artists.get(num-1);//Stores selected artist in lastViewedArtist variable
+				else if(lastViewed.equals("ARTISTLIST") && num - 1 < tempArtists.size()) {
+					artistViewList.add(tempArtists.get(num-1));
+					lastViewedArtist = tempArtists.get(num-1);//Stores selected artist in lastViewedArtist variable
 				}
 				else {
 					System.out.println("Operation not possible.");
 				}
+			}
+			
+			else if(input.equals("ADD LAST")) {
+				artistViewList.add(lastViewedArtist);
 			}
 			
 			else if(input.equals("VIEWLIST")) {
@@ -184,8 +175,46 @@ public class AlbumCatalog {
 				}
 			}
 			
+			else if(input.equals("AVW")) {
+				int num = 1;
+				if(artistViewList.size() < 1) {
+					System.out.println("Artist view list is empty.");
+				}
+				else {
+					for(Artist a : artistViewList) {
+						System.out.println("["+num+"] "+a);
+						num++;
+					}
+				}
+				lastViewed = "AVW";
+			}
+			
+			else if(input.equals("CLEAR AVW")) {
+				artistViewList = new ArrayList<Artist>();
+			}
+			
+			else if(input.length() > 7 && input.substring(0,8).equals("RMV AVW ")) {
+				int num = Integer.parseInt(input.substring(8));
+				if(num < 1 || num > artistViewList.size()) {
+					System.out.println("Operation not possible.");
+				}
+				else {
+					artistViewList.remove(num-1);
+				}
+			}
+			
+			else if(input.length() > 7 && input.substring(0,8).equals("SETLAST ")) {
+				int num = Integer.parseInt(input.substring(8));
+				if(lastViewed.equals("ARTISTLIST")) {
+					lastViewedArtist = tempArtists.get(num-1);
+				}
+				else if(lastViewed.equals("AVW")) {
+					lastViewedArtist = artistViewList.get(num-1);
+				}
+			}
+			
 			else if(input.length() == 13 && input.substring(0,11).equals("ALBUM INFO ")) {
-				int num = Integer.parseInt(input.substring(11,13));
+				int num = Integer.parseInt(input.substring(11));
 				Album a = viewList.get(num-1);
 				System.out.println("Album title: "+a.getName());
 				System.out.println("Artist: "+a.getArtist());
@@ -201,11 +230,20 @@ public class AlbumCatalog {
 				System.out.println("PAD LAST = print discography of last saved artist");
 				System.out.println("OTD Date = print albums from date mmdd or mmddyyyy");
 				System.out.println("PRINT ARTISTS = print list of artists in catalog");
-				System.out.println("ADD Num = add album number num of artist or date to viewlist, num in 0X or XX format");
+				System.out.println("PRINT ARTISTS letter = print out artists whose names start with letter");
+				System.out.println("SETLAST num = set artist number num to last saved artist");
+				System.out.println("-----ADDING-----");
+				System.out.println("ADD num = add album number num to viewlist or "
+						+ "artist number num to artist view list");
+				System.out.println("ADD LAST = add last viewed artist to artist view list");
+				System.out.println("-----LISTS-----");
 				System.out.println("VIEWLIST = print viewlist");
 				System.out.println("CLEAR VIEWLIST = clear viewlist");
-				System.out.println("RMV VIEWLIST num = remove album at num in viewlist, nums in 0X or XX format");
-				System.out.println("ALBUM INFO num = print complete album info for album num in viewlist, nums in 0X or XX format");
+				System.out.println("RMV VIEWLIST num = remove album at num in viewlist");
+				System.out.println("ALBUM INFO num = print complete album info for album num in viewlist");
+				System.out.println("AVW = print artist view list");
+				System.out.println("CLEAR AVW = clear artist view list");
+				System.out.println("RMV AVW num = remove artist number num from artist view list");
 				System.out.println("QUIT = quit program");
 			}
 			
@@ -324,8 +362,9 @@ public class AlbumCatalog {
 	        	String lineRating = line.substring(line.indexOf("OPID")+16,line.indexOf("OPID")+18);
 	        	String lineMainGenre = line.substring(line.indexOf("OPID")+18,line.indexOf("OPTX")-1);
 	        	String lineID = lineArtistCode+lineMonth+lineDate+lineYear+lineRating+lineMainGenre;
-	        	int indexOfDate = AlbumCatalog.dateToIndex(lineMonth+lineDate+lineYear, dates);
-
+//	        	int indexOfDate = AlbumCatalog.dateToIndex(lineMonth+lineDate+lineYear, dates);
+	        	String lineDateFull = lineMonth+lineDate+lineYear;
+	        	
 	        	boolean isNewArtist = true;
 	        	Artist aTemp = null;
 	        	for(Artist a : artistsList) {
@@ -334,13 +373,28 @@ public class AlbumCatalog {
 	        			aTemp = a;
 	        		}
 	        	}
+	        	
+	        	boolean isNewDate = true;
+	        	Date dTemp = null;
+	        	for(Date d : dates) {
+	        		if(d.getDate().equals(lineDateFull)) {
+	        			isNewDate = false;
+	        			dTemp = d;
+	        		}
+	        	}
+	        	
 	        	if(!isNewArtist) {
 	        		Album album = new Album(lineName, aTemp, lineID);
 	        		aTemp.add(album);
-	        		dates.get(indexOfDate).getOnThisDay().add(album);
-	        		dates.get(indexOfDate).sortOTD();
-	        		//Testing:
-//	        		System.out.println(dates.get(indexOfDate).getOnThisDay());
+	        		if(isNewDate) {
+	        			Date dNew = new Date(lineDateFull);
+	        			dates.add(dNew);
+	        			dNew.getOnThisDay().add(album);
+	        		}
+	        		else {
+	        			dTemp.getOnThisDay().add(album);
+	        			dTemp.sortOTD();
+	        		}
 	        		numAlbumsHere++;
 	        	}
 	        	else {
@@ -348,10 +402,15 @@ public class AlbumCatalog {
 	        		Album album = new Album(lineName, newArtist, lineID);
 	        		artistsList.add(newArtist);
 	        		newArtist.add(album);
-	        		dates.get(indexOfDate).getOnThisDay().add(album);
-	        		dates.get(indexOfDate).sortOTD();
-	        		//Testing:
-//	        		System.out.println(dates.get(indexOfDate).getOnThisDay());
+	        		if(isNewDate) {
+	        			Date dNew = new Date(lineDateFull);
+	        			dates.add(dNew);
+	        			dNew.getOnThisDay().add(album);
+	        		}
+	        		else {
+	        			dTemp.getOnThisDay().add(album);
+	        			dTemp.sortOTD();
+	        		}
 	        		numAlbumsHere++;
 	        	}	        
 	        }
@@ -362,83 +421,5 @@ public class AlbumCatalog {
 	        System.out.println("File not found.");
 	    }
 		return numAlbumsHere;
-	}
-	
-	
-	
-	
-	
-	
-	
-//	public static void parse(File wholeFile, ArrayList<Artist> artistsList, int albumTracker, ArrayList<Date> dates) {
-//		int j = 1;
-//		try {
-//			Scanner scanWhole = new Scanner(wholeFile);
-//			
-//			while (scanWhole.hasNext()) {
-//				AlbumCatalog.readLine(j, wholeFile, artistsList, albumTracker, dates);
-//				j++;
-//			}
-//		} 
-//		catch (FileNotFoundException e) {
-//			System.out.println("File not found.");
-//		}
-//	}
-//	
-//	public static void readLine(int i, File f, ArrayList<Artist> artistsList, int albumTracker, ArrayList<Date> dates) {
-//		if(i < 1) {
-//			throw new IndexOutOfBoundsException();
-//		}
-//		
-//		try {
-//
-//	        Scanner scan = new Scanner(f);
-//	        
-//	        for(int j = 0; j < i - 1; j++) {
-//	        	scan.nextLine();
-//	        }
-//	        
-//	        String line = scan.nextLine();
-//	        String lineName = line.substring(line.indexOf("OPNM")+5,line.indexOf("OPRT"));
-//	        String lineArtist = line.substring(line.indexOf("OPRT")+5,line.indexOf("OPID"));
-//	        String lineID = line.substring(line.indexOf("OPID"+5), line.indexOf("OPTX"));
-//	        String lineArtistCode = line.substring(line.indexOf("OPID")+5,line.indexOf("OPID")+9);
-//	        String lineMonth = line.substring(line.indexOf("OPID")+9,line.indexOf("OPID")+11);
-//	        String lineDate = line.substring(line.indexOf("OPID")+11,line.indexOf("OPID")+13);
-//	        String lineYear = line.substring(line.indexOf("OPID")+13,line.indexOf("OPID")+17);
-//	        String lineRating = line.substring(line.indexOf("OPID")+17,line.indexOf("OPID")+19);
-//	        String lineMainGenre = line.substring(line.indexOf("OPID")+19,line.indexOf("OPTX"));
-//	        int indexOfDate = ((Integer.parseInt(lineMonth) - 1) * 31) + Integer.parseInt(lineDate) - 1;
-//	        
-//	        boolean isNewArtist = true;
-//	        Artist aTemp = null;
-//	        for(Artist a : artistsList) {
-//	        	if(lineID.substring(0, 3).equals(a.getArtistCode())){
-//	        		isNewArtist = false;
-//	        		aTemp = a;
-//	        	}
-//	        }
-//	        if(!isNewArtist) {
-//	        	Album album = new Album(lineName, aTemp, lineID);
-//	        	aTemp.add(album);
-//	        	dates.get(indexOfDate).add(album);
-//	        	albumTracker++;
-//	        }
-//	        else {
-//	        	Artist newArtist = new Artist(lineArtist, lineID.substring(0,3));
-//	        	Album album = new Album(lineName, newArtist, lineID);
-//	        	artistsList.add(newArtist);
-//	        	newArtist.add(album);
-//	        	dates.get(indexOfDate).add(album);
-//	        	albumTracker++;
-//	        }	        
-//	        
-//	        scan.close();
-//	    } 
-//	    catch (FileNotFoundException e) {
-//	        e.printStackTrace();
-//	        System.out.println("File not found.");
-//	    }
-//	}
-	
+	}	
 }
