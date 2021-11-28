@@ -10,6 +10,7 @@ import java.util.Collections;
 public class AlbumCatalog {
 	public static void main(String[] args) {
 		File file = new File(".\\AlbumCatalogDoc.txt");
+//		System.out.println(file.getAbsolutePath());
 		
 		int numAlbums = 0;
 		
@@ -121,6 +122,9 @@ public class AlbumCatalog {
 						tempArtists.add(a);
 						num++;
 					}
+				}
+				if(tempArtists.size() == 0) {
+					System.out.println("...");
 				}
 				lastViewed = "ARTISTLIST";
 			}
@@ -246,6 +250,12 @@ public class AlbumCatalog {
 				System.out.println("QUIT = quit program");
 			}
 			
+			else {
+				if(!input.equals("QUIT")) {
+					System.out.println("Sorry, we didn't understand your input.");
+				}
+			}
+			
 		}
 		System.out.println("Thanks for using the Intelligent Album Catalog!");
 		keyboard.close();
@@ -346,72 +356,79 @@ public class AlbumCatalog {
 		try {
 
 	        Scanner scan = new Scanner(f);
-
+	        int lineNum = 0;
 	        while(scan.hasNext()) {
 	        	String line = scan.nextLine();//Read each line as an album
+	        	lineNum++;
 	        	while(line.indexOf("//") != -1) {
 	        		line = scan.nextLine();
+	        		lineNum++;
 	        	}//Allows for commenting in txt file
-	        	String lineName = line.substring(line.indexOf("OPNM")+5,line.indexOf("OPRT")-1);
-	        	String lineArtist = line.substring(line.indexOf("OPRT")+5,line.indexOf("OPID")-1);
-	        	String lineArtistCode = line.substring(line.indexOf("OPID")+5,line.indexOf("OPID")+8);
-	        	String lineMonth = line.substring(line.indexOf("OPID")+8,line.indexOf("OPID")+10);
-	        	String lineDate = line.substring(line.indexOf("OPID")+10,line.indexOf("OPID")+12);
-	        	String lineYear = line.substring(line.indexOf("OPID")+12,line.indexOf("OPID")+16);
-	        	String lineRating = line.substring(line.indexOf("OPID")+16,line.indexOf("OPID")+18);
-	        	String lineMainGenre = line.substring(line.indexOf("OPID")+18,line.indexOf("OPTX")-1);
-	        	String lineID = lineArtistCode+lineMonth+lineDate+lineYear+lineRating+lineMainGenre;
-//	        	int indexOfDate = AlbumCatalog.dateToIndex(lineMonth+lineDate+lineYear, dates);
-	        	String lineDateFull = lineMonth+lineDate+lineYear;
-	        	
-	        	boolean isNewArtist = true;
-	        	Artist aTemp = null;
-	        	for(Artist a : artistsList) {
-	        		if(lineArtistCode.equals(a.getArtistCode())){
-	        			isNewArtist = false;
-	        			aTemp = a;
+	        	try {//Try-catch tries to parse, throws error on line lineNum if formatting is wrong
+	        		String lineName = line.substring(line.indexOf("OPNM")+5,line.indexOf("OPRT")-1);
+	        		String lineArtist = line.substring(line.indexOf("OPRT")+5,line.indexOf("OPID")-1);
+	        		String lineArtistCode = line.substring(line.indexOf("OPID")+5,line.indexOf("OPID")+8);
+	        		String lineMonth = line.substring(line.indexOf("OPID")+8,line.indexOf("OPID")+10);
+	        		String lineDate = line.substring(line.indexOf("OPID")+10,line.indexOf("OPID")+12);
+	        		String lineYear = line.substring(line.indexOf("OPID")+12,line.indexOf("OPID")+16);
+	        		String lineRating = line.substring(line.indexOf("OPID")+16,line.indexOf("OPID")+18);
+	        		String lineMainGenre = line.substring(line.indexOf("OPID")+18,line.indexOf("OPTX")-1);
+	        		String lineID = lineArtistCode+lineMonth+lineDate+lineYear+lineRating+lineMainGenre;
+	        		//	        	int indexOfDate = AlbumCatalog.dateToIndex(lineMonth+lineDate+lineYear, dates);
+	        		String lineDateFull = lineMonth+lineDate+lineYear;
+
+	        		boolean isNewArtist = true;
+	        		Artist aTemp = null;
+	        		for(Artist a : artistsList) {
+	        			if(lineArtistCode.equals(a.getArtistCode())){
+	        				isNewArtist = false;
+	        				aTemp = a;
+	        			}
 	        		}
-	        	}
-	        	
-	        	boolean isNewDate = true;
-	        	Date dTemp = null;
-	        	for(Date d : dates) {
-	        		if(d.getDate().equals(lineDateFull)) {
-	        			isNewDate = false;
-	        			dTemp = d;
+
+	        		boolean isNewDate = true;
+	        		Date dTemp = null;
+	        		for(Date d : dates) {
+	        			if(d.getDate().equals(lineDateFull)) {
+	        				isNewDate = false;
+	        				dTemp = d;
+	        			}
 	        		}
-	        	}
-	        	
-	        	if(!isNewArtist) {
-	        		Album album = new Album(lineName, aTemp, lineID);
-	        		aTemp.add(album);
-	        		if(isNewDate) {
-	        			Date dNew = new Date(lineDateFull);
-	        			dates.add(dNew);
-	        			dNew.getOnThisDay().add(album);
-	        		}
-	        		else {
-	        			dTemp.getOnThisDay().add(album);
-	        			dTemp.sortOTD();
-	        		}
-	        		numAlbumsHere++;
-	        	}
-	        	else {
-	        		Artist newArtist = new Artist(lineArtist, lineArtistCode);
-	        		Album album = new Album(lineName, newArtist, lineID);
-	        		artistsList.add(newArtist);
-	        		newArtist.add(album);
-	        		if(isNewDate) {
-	        			Date dNew = new Date(lineDateFull);
-	        			dates.add(dNew);
-	        			dNew.getOnThisDay().add(album);
+
+	        		if(!isNewArtist) {
+	        			Album album = new Album(lineName, aTemp, lineID);
+	        			aTemp.add(album);
+	        			if(isNewDate) {
+	        				Date dNew = new Date(lineDateFull);
+	        				dates.add(dNew);
+	        				dNew.getOnThisDay().add(album);
+	        			}
+	        			else {
+	        				dTemp.getOnThisDay().add(album);
+	        				dTemp.sortOTD();
+	        			}
+	        			numAlbumsHere++;
 	        		}
 	        		else {
-	        			dTemp.getOnThisDay().add(album);
-	        			dTemp.sortOTD();
-	        		}
-	        		numAlbumsHere++;
-	        	}	        
+	        			Artist newArtist = new Artist(lineArtist, lineArtistCode);
+	        			Album album = new Album(lineName, newArtist, lineID);
+	        			artistsList.add(newArtist);
+	        			newArtist.add(album);
+	        			if(isNewDate) {
+	        				Date dNew = new Date(lineDateFull);
+	        				dates.add(dNew);
+	        				dNew.getOnThisDay().add(album);
+	        			}
+	        			else {
+	        				dTemp.getOnThisDay().add(album);
+	        				dTemp.sortOTD();
+	        			}
+	        			numAlbumsHere++;
+	        		}	        
+	        	}
+	        	catch(Exception e) {//Catches errors in txt file
+	        		System.out.println("Error on line "+lineNum+".");
+	        	}
 	        }
 	        scan.close();
 	    } 
